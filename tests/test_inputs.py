@@ -33,7 +33,7 @@ def test_to_jax_bf16_downcasts():
 
 def test_dtype_atol():
     assert dtype_atol("f32") == 1e-4
-    assert dtype_atol("bf16") == 5e-2
+    assert dtype_atol("bf16") == 7e-2
 
 
 def test_unknown_dtype_raises():
