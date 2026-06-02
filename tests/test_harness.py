@@ -46,3 +46,24 @@ def test_run_benchmark_marks_equiv_failure():
     r = run_benchmark(spec, shape=(8,), dtype="f32", warmup=1, iters=3)
     assert not r.equiv_ok
     assert "max abs diff" in r.equiv_error
+
+
+def test_atol_override_makes_mismatch_pass():
+    """Spec.atol_override raises the tolerance; a deliberate mismatch should pass."""
+    def torch_module():
+        import torch.nn as nn
+        class M(nn.Module):
+            def forward(self, x):
+                return x * 2.0
+        return M()
+
+    def jax_fn():
+        def f(x):
+            return x * 3.0  # ~|x| diff at the input scale
+        return f
+
+    spec = Spec(torch_module=torch_module, jax_fn=jax_fn,
+                shapes=[(8,)], dtypes=["f32"], params={},
+                atol_override={"f32": 1e9})
+    r = run_benchmark(spec, shape=(8,), dtype="f32", warmup=1, iters=3)
+    assert r.equiv_ok, f"override should make mismatch pass, got {r.equiv_error}"

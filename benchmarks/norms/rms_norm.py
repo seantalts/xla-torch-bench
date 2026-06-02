@@ -14,8 +14,9 @@ def rms_norm() -> Spec:
                 self.w = nn.Parameter(torch.ones(d))
 
             def forward(self, x):
+                w = self.w.to(x.dtype)
                 rms = torch.rsqrt(x.pow(2).mean(-1, keepdim=True) + 1e-6)
-                return x * rms * self.w
+                return x * rms * w
         return M()
 
     def jax_fn(d):
@@ -24,8 +25,9 @@ def rms_norm() -> Spec:
         w = jnp.ones((d,))
 
         def f(x):
+            wc = w.astype(x.dtype)
             rms = jax.lax.rsqrt(jnp.mean(x * x, -1, keepdims=True) + 1e-6)
-            return x * rms * w
+            return x * rms * wc
         return f
 
     return Spec(

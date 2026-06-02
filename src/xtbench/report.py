@@ -37,9 +37,10 @@ def format_table(rows: list[tuple[RowKey, Result]]) -> str:
     lines = [_HEADER, "-" * len(_HEADER)]
     for key, r in rows:
         lines.append(format_row(key, r))
-    if rows:
-        torch_c = median([r.compile_ms_torch for _, r in rows if r.equiv_ok])
-        jax_c = median([r.compile_ms_jax for _, r in rows if r.equiv_ok])
+    ok_rows = [r for _, r in rows if r.equiv_ok]
+    if ok_rows:
+        torch_c = median([r.compile_ms_torch for r in ok_rows])
+        jax_c = median([r.compile_ms_jax for r in ok_rows])
         lines.append("")
         lines.append(
             f"compile time (median, first-call): "
