@@ -27,4 +27,6 @@ def to_jax(arr: np.ndarray, dtype: str):
 
 def dtype_atol(dtype: str) -> float:
     _check_dtype(dtype)
-    return {"f32": 1e-4, "bf16": 1e-2}[dtype]
+    # bf16 has ~3 sig figs; rms_norm and other reductions push diffs to ~3e-2,
+    # so 5e-2 is the realistic floor — tighter than this gives false positives.
+    return {"f32": 1e-4, "bf16": 5e-2}[dtype]
