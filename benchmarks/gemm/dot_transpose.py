@@ -34,4 +34,6 @@ def dot_transpose() -> Spec:
         shapes=[(512, 768, 512)],
         dtypes=["f32", "bf16"],
         inputs=_inputs,
+        # K=768 bf16 GEMM; same K-accumulation rationale as dot_medium.
+        atol_override={"bf16": 1.0},
     )

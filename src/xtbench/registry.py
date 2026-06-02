@@ -24,6 +24,10 @@ class Spec:
     dtypes: list[str]
     params: dict[str, Callable[[tuple[int, ...]], Any]] = field(default_factory=dict)
     inputs: Callable[[tuple, str, int], list[np.ndarray]] = _default_inputs
+    # Optional per-dtype atol override. Use for benchmarks where K-accumulation
+    # or other scale-dependent error exceeds the global dtype_atol floor
+    # (e.g. bf16 GEMM with large K).
+    atol_override: dict[str, float] = field(default_factory=dict)
 
 
 REGISTRY: list[tuple[str, Spec]] = []

@@ -33,4 +33,5 @@ def test_equivalence(name, spec, shape, dtype):
     jax_inputs = [to_jax(a, dtype) for a in np_inputs]
     jax_out = np.asarray(f(*jax_inputs), dtype=np.float32)
 
-    assert_close(torch_out, jax_out, atol=dtype_atol(dtype))
+    atol = spec.atol_override.get(dtype, dtype_atol(dtype))
+    assert_close(torch_out, jax_out, atol=atol)

@@ -33,4 +33,7 @@ def dot_medium() -> Spec:
         shapes=[(1024, 1024, 1024)],
         dtypes=["f32", "bf16"],
         inputs=_inputs,
+        # K=1024 sum of bf16 products of N(0,1) values has output magnitudes
+        # ~sqrt(K)=32 and ~2-ULP error at that magnitude ~= 1.0.
+        atol_override={"bf16": 1.0},
     )

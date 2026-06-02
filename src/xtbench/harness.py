@@ -56,8 +56,9 @@ def run_benchmark(
     # ---- Equivalence check ----
     torch_out = m(*torch_inputs).detach().to(torch.float32).numpy()
     jax_out = np.asarray(f_jit(*jax_inputs), dtype=np.float32)
+    atol = spec.atol_override.get(dtype, dtype_atol(dtype))
     try:
-        assert_close(torch_out, jax_out, atol=dtype_atol(dtype))
+        assert_close(torch_out, jax_out, atol=atol)
         equiv_ok, equiv_error = True, ""
     except EquivalenceError as e:
         equiv_ok, equiv_error = False, str(e)
