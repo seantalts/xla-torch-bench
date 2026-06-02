@@ -169,12 +169,7 @@ Expected: `no tests ran in <time>s`.
 
 ```bash
 git add pyproject.toml src/xtbench/__init__.py tests/__init__.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add pyproject and empty package skeleton.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add pyproject and empty package skeleton."
 ```
 
 ---
@@ -313,12 +308,7 @@ Expected: all three tests PASS.
 
 ```bash
 git add src/xtbench/__init__.py src/xtbench/registry.py tests/test_registry.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add Spec dataclass and @register decorator.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add Spec dataclass and @register decorator."
 ```
 
 ---
@@ -382,12 +372,7 @@ Expected: prints `ok`.
 
 ```bash
 git add src/xtbench/env.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add env.pin_threads — set OMP/MKL/XLA thread flags before framework imports.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add env.pin_threads — set OMP/MKL/XLA thread flags before framework imports."
 ```
 
 ---
@@ -503,12 +488,7 @@ Expected: all six tests PASS.
 
 ```bash
 git add src/xtbench/inputs.py tests/test_inputs.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add inputs.to_torch / to_jax / dtype_atol helpers.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add inputs.to_torch / to_jax / dtype_atol helpers."
 ```
 
 ---
@@ -597,12 +577,7 @@ Expected: all three tests PASS.
 
 ```bash
 git add src/xtbench/equivalence.py tests/test_equivalence_check.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add equivalence.assert_close with shape and atol checks.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add equivalence.assert_close with shape and atol checks."
 ```
 
 ---
@@ -717,12 +692,7 @@ Expected: all three tests PASS.
 
 ```bash
 git add src/xtbench/timing.py tests/test_timing.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add timing helpers: time_torch, time_jax, summarize.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add timing helpers: time_torch, time_jax, summarize."
 ```
 
 ---
@@ -889,12 +859,7 @@ Expected: both tests PASS. (First run will be slow because `torch.compile` warms
 
 ```bash
 git add src/xtbench/harness.py tests/test_harness.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add run_benchmark: orchestrates compile, equivalence, warmup, timing per (spec, shape, dtype).
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add run_benchmark: orchestrates compile, equivalence, warmup, timing per (spec, shape, dtype)."
 ```
 
 ---
@@ -1028,12 +993,7 @@ Expected: all three tests PASS.
 
 ```bash
 git add src/xtbench/report.py tests/test_report.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add stdout table formatter (report.format_row / format_table).
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add stdout table formatter (report.format_row / format_table)."
 ```
 
 ---
@@ -1149,12 +1109,7 @@ Expected: prints the table header and a `compile time …` line absent, OR a cle
 
 ```bash
 git add src/xtbench/cli.py src/xtbench/__main__.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add CLI entry point (python -m xtbench). Pins threads before framework imports.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add CLI entry point (python -m xtbench). Pins threads before framework imports."
 ```
 
 ---
@@ -1239,12 +1194,7 @@ Expected: a table with 4 rows (2 shapes × 2 dtypes), all marked equivalent, wit
 
 ```bash
 git add benchmarks/__init__.py benchmarks/norms/__init__.py benchmarks/norms/rms_norm.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add first benchmark: rms_norm (norms category).
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add first benchmark: rms_norm (norms category)."
 ```
 
 ---
@@ -1309,12 +1259,7 @@ Expected: 4 PASS (2 shapes × 2 dtypes for `rms_norm`). bf16 may be close to the
 
 ```bash
 git add tests/test_equivalence.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add parametrized equivalence test over the full registry.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add parametrized equivalence test over the full registry."
 ```
 
 ---
@@ -1551,12 +1496,7 @@ Expected: one row per (benchmark, shape, dtype). Manually sanity-check the misal
 
 ```bash
 git add benchmarks/elementwise/ benchmarks/__init__.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add elementwise benchmarks: add_chain, gelu_chain, silu_mul, add_mul_aligned_vs_misaligned.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add elementwise benchmarks: add_chain, gelu_chain, silu_mul, add_mul_aligned_vs_misaligned."
 ```
 
 ---
@@ -1738,12 +1678,7 @@ Expected: equivalence PASS for all; CLI prints one row per case.
 
 ```bash
 git add benchmarks/norms/
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add norm benchmarks: layer_norm, softmax, sum_axis, mean_axis.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add norm benchmarks: layer_norm, softmax, sum_axis, mean_axis."
 ```
 
 ---
@@ -1974,12 +1909,7 @@ Expected: all equivalence checks PASS. (Tolerance on bf16 matmul-of-1024³ is cl
 
 ```bash
 git add benchmarks/gemm/ benchmarks/__init__.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add GEMM benchmarks: dot_small, dot_medium, dot_bias_gelu, dot_transpose.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add GEMM benchmarks: dot_small, dot_medium, dot_bias_gelu, dot_transpose."
 ```
 
 ---
@@ -2153,12 +2083,7 @@ Expected: PASS. bf16 attention at seq=2048 is the tightest case; if equiv fails,
 
 ```bash
 git add benchmarks/attention/ benchmarks/__init__.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add attention benchmarks: mha_block, gqa_block.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add attention benchmarks: mha_block, gqa_block."
 ```
 
 ---
@@ -2409,12 +2334,7 @@ Expected: all tests PASS, full benchmark table prints with all rows non-EQUIV-FA
 
 ```bash
 git add benchmarks/e2e/ benchmarks/__init__.py
-git -c user.name=seantalts -c user.email=talts@google.com commit -m "$(cat <<'EOF'
-Add E2E benchmarks: gpt2_block, mlp_mixer_block.
-
-Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>
-EOF
-)"
+git -c user.name=seantalts -c user.email=talts@google.com commit -m "Add E2E benchmarks: gpt2_block, mlp_mixer_block."
 ```
 
 ---
