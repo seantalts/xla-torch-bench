@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "xtbench"
+version = "0.0.1"
+description = "XLA:CPU vs PyTorch Inductor CPU benchmarks (rosetta-stone)."
+requires-python = ">=3.11"
+dependencies = [
+  "numpy",
+  "torch",
+  "jax[cpu]",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+pythonpath = ["."]   # so `import benchmarks` works in tests
