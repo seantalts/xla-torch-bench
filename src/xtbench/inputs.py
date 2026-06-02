@@ -27,7 +27,8 @@ def to_jax(arr: np.ndarray, dtype: str):
 
 def dtype_atol(dtype: str) -> float:
     _check_dtype(dtype)
-    # 1 bf16 ULP at magnitude ~1 is 0.0625; fused-vs-decomposed kernel pairs
-    # (e.g. torch's fused silu vs jax's x*sigmoid(x)) routinely produce a 1-ULP
-    # diff. 7e-2 gives a hair of headroom over that floor.
-    return {"f32": 1e-4, "bf16": 7e-2}[dtype]
+    # f32: compiled reductions (Inductor's vs XLA's tree shapes) drift by ~2e-4
+    # on long axes (~4096 elements). 5e-4 covers that without masking real bugs.
+    # bf16: 1 bf16 ULP at magnitude ~1 is 0.0625; fused-vs-decomposed kernel
+    # pairs routinely produce a 1-ULP diff. 7e-2 gives headroom over that floor.
+    return {"f32": 5e-4, "bf16": 7e-2}[dtype]
