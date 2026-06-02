@@ -1,2 +1,2 @@
 """Importing this package populates xtbench.registry.REGISTRY."""
-from benchmarks import norms, elementwise, gemm  # noqa: F401
+from benchmarks import norms, elementwise, gemm, attention  # noqa: F401
