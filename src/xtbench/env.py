@@ -12,11 +12,10 @@ def pin_threads(n: int) -> None:
     """
     os.environ["OMP_NUM_THREADS"] = str(n)
     os.environ["MKL_NUM_THREADS"] = str(n)
+    # XLA reads --xla_cpu_multi_thread_eigen at jaxlib init; eigen thread count
+    # comes from OMP_NUM_THREADS (jaxlib 0.10 dropped --xla_cpu_eigen_num_threads).
     xla_flags = os.environ.get("XLA_FLAGS", "")
-    extra = (
-        f"--xla_cpu_multi_thread_eigen=true "
-        f"--xla_cpu_eigen_num_threads={n}"
-    )
+    extra = "--xla_cpu_multi_thread_eigen=true"
     os.environ["XLA_FLAGS"] = (xla_flags + " " + extra).strip()
 
 
