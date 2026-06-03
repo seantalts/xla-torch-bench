@@ -300,3 +300,107 @@ Deferred to this doc:
   width and trusts the backend.
 - Structural multi-output recognizer (the layer_norm 3× lever).
 - IREE-style ukernels.
+
+## Update 2026-06-02 — Routes A & B investigation
+
+Two parallel subagents investigated the dispatcher-gap "plan-level surprise"
+above. Branches `feat/reduce-emitter-route-a` and `feat/reduce-emitter-route-b`
+in their respective worktrees (local-only).
+
+### Route A: kReduce via the tiled emitter (3-line dispatch fix)
+
+**Verdict: correctness works today; perf gap is structural.**
+
+Adding `case HloOpcode::kReduce: return true;` to `IsSupportedInstruction` in
+`xla/backends/cpu/codegen/tiled/tiled_fusion_emitter.cc:189` is sufficient to
+route reduce-containing fusions through the tiled MLIR emitter. 9/9 lit tests
+pass; 8 representative reduce HLOs (f32 + bf16, single + multi-axis, with
+predicates, with elementwise consumers) execute end-to-end and match the
+interpreter.
+
+But **YNN-shape benchmarks show zero perf change** because:
+- Symbolic-tile analysis (`xla/codegen/tiling/symbolic_tile_analysis.cc`) tiles
+  the YNN 4096×768 shape into 4×256 chunks. The reduce inner-loop sees N=4,
+  which is below the multi-acc activation threshold of `N ≥ 2K = 8`.
+- The multi-acc prototype lives inside `EmitReductionLoop`
+  (`vectorized_reduce_emitter.cc:458`), one level below the tiling decision.
+  Either the cost model must leave the reduction axis untiled / tall, or
+  multi-acc must hoist above the per-tile `scf.for`.
+
+Cataloged obstacles for follow-up:
+1. `kBroadcast` not in `IsSupportedInstruction` — blocks any `mean = sum / N`
+   fusion shape.
+2. Reduction-axis tile decomposition defeats multi-acc (the main perf issue).
+3. Tiled path silently falls back to legacy with no `VLOG` — debugging is hard.
+4. Pre-existing bf16 numerical envelope (legacy and tiled both miss tight atol
+   on 4096-row bf16 reduces). Piece (2) widen-on-load addresses this in both.
+5. Reducer-body opcodes beyond add/mul/min/max untested.
+
+**Dispatch fix as a standalone PR**: 1 day (3 lines + `kBroadcast` + a small
+correctness lit test under `xla/backends/cpu/codegen/tools`). Worth landing
+because it's the only path the structural multi-output recognizer (the
+layer_norm 3× lever) can plausibly live on.
+
+**Perf parity with YNN through this path**: 2–4 weeks (tiling cost model
+changes + multi-acc hoisting + pieces 2/3 from the original design).
+
+### Route B: multi-acc in the legacy ElementalIrEmitter path
+
+**Verdict: lands cleanly, but it's the wrong emitter for the production
+dispatch and tree-rewriting upstream pre-decomposes the shapes anyway.**
+
+Multi-accumulator structure ported into
+`xla/service/elemental_ir_emitter.cc::EmitElementalReduce` (+227 lines). IR
+verification confirms 4 independent `fadd reassoc` chains instead of one
+32-deep chain. All reduce-test bazel test targets pass
+(`reduce_test_cpu`, `vector_ops_reduce_test_cpu`, `reduce_window_test_cpu`).
+
+YNN-shape benchmarks show no movement (-2.2% to +1.3%, within noise) because:
+
+1. **Wrong emitter for default dispatch.** `xla_cpu_use_fusion_emitters=true`
+   (default) makes `FusionWrapper` wrap every `kReduce` in a `kLoop` fusion
+   that flows through `LoopFusionKernelEmitter` → MLIR `EmitReduce` in
+   `xla/codegen/emitters/elemental_hlo_to_mlir.cc:180`. The legacy
+   `ElementalIrEmitter` path is bypassed in production.
+
+2. **`TreeReductionRewriter` upstream.** Runs unconditionally for CPU with
+   `reduce_window_size=32`. For the YNN shapes it rewrites the reduce into a
+   chain of `reduce-window` (size 32, stride 32) + a final tiny `reduce` with
+   inner dim of 4 or 2 — well below any multi-acc threshold. The bulk of
+   work happens in the `reduce-window` ops, not in the residual `reduce`.
+
+The multi-acc code is correct and exercise-able via
+`xla_cpu_use_fusion_emitters=false` on a shape that escapes tree rewriting
+(`reduce(f32[16,32], dim=1)`) but is dead code for the production dispatcher
+today.
+
+### Where the multi-acc work actually belongs
+
+**Route C, emerging from both investigations**: `xla/codegen/emitters/elemental_hlo_to_mlir.cc::EmitReduce` and `EmitReduceWindow`. This is the MLIR emitter the default dispatcher reaches via `LoopFusionKernelEmitter`. Both Route A's tiled emitter (`vectorized_reduce_emitter.cc`) and Route B's legacy LLVM emitter (`ElementalIrEmitter::EmitElementalReduce`) share the same single-accumulator anti-pattern as this MLIR emitter — and Route C is the one production actually hits.
+
+`EmitReduceWindow` is the more important target because of `TreeReductionRewriter`: every large reduce gets rewritten into many windowed reductions, and the windowed ops are where the bulk of work happens. For aligned post-rewrite windows (no padding) the per-iteration bounds check is hoist-able and a K-acc loop should drop in cleanly.
+
+### Revised plan of attack
+
+In order of payoff per unit effort:
+
+1. **Land Route A's dispatch fix as a standalone PR** (~1 day). Unblocks the
+   tiled emitter as a home for future reduce work. Add `kBroadcast` to the
+   supported list at the same time.
+2. **Port multi-acc to `EmitReduceWindow` in `elemental_hlo_to_mlir.cc`**
+   (Route C, narrow form). This is the path that actually runs for YNN shapes
+   today. Reuse the K=4 + tree-combine structure from the existing prototypes.
+3. **Add bf16 widen-on-load** to whichever MLIR emitter ends up hot. Piece (2)
+   from the original design. Addresses the catastrophic bf16 reduction gap and
+   the pre-existing numerical envelope issue Route A surfaced.
+4. **Audit `TreeReductionRewriter`'s necessity** for shapes the modern MLIR
+   emitter can handle directly. If it's only needed to bound IR size for the
+   legacy emitter, the modern path may benefit from skipping it for shapes
+   below some size threshold — preserves the multi-acc activation conditions
+   on the residual reduce.
+5. **Structural multi-output reduction recognizer** (the layer_norm 3× lever)
+   in the tiled pipeline, leveraging the now-unblocked dispatch from Route A.
+
+Pieces 1 and 2 together should produce measurable benchmark movement; pieces 3
+and 4 close the bf16 gap and remove the upstream-rewrite confounder; piece 5
+delivers the multi-pass-reduction win.
