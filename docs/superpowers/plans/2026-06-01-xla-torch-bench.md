@@ -339,11 +339,10 @@ def pin_threads(n: int) -> None:
     """
     os.environ["OMP_NUM_THREADS"] = str(n)
     os.environ["MKL_NUM_THREADS"] = str(n)
+    # XLA reads --xla_cpu_multi_thread_eigen at jaxlib init; eigen thread count
+    # comes from OMP_NUM_THREADS (jaxlib 0.10 dropped --xla_cpu_eigen_num_threads).
     xla_flags = os.environ.get("XLA_FLAGS", "")
-    extra = (
-        f"--xla_cpu_multi_thread_eigen=true "
-        f"--xla_cpu_eigen_num_threads={n}"
-    )
+    extra = "--xla_cpu_multi_thread_eigen=true"
     os.environ["XLA_FLAGS"] = (xla_flags + " " + extra).strip()
 
 
@@ -673,10 +672,12 @@ class Stats:
 
 def summarize(samples_ns: list[int]) -> Stats:
     a = np.asarray(samples_ns, dtype=np.float64) / 1e6  # → ms
+    # method="nearest" returns actual observed samples for p10/p90; linear
+    # interpolation between latency samples has no physical meaning.
     return Stats(
         median_ms=float(np.median(a)),
-        p10_ms=float(np.percentile(a, 10)),
-        p90_ms=float(np.percentile(a, 90)),
+        p10_ms=float(np.percentile(a, 10, method="nearest")),
+        p90_ms=float(np.percentile(a, 90, method="nearest")),
     )
 ```
 
