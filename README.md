@@ -7,6 +7,11 @@ CPU benchmarks comparing XLA:CPU (via `jax.jit`) against PyTorch Inductor (via `
 ```bash
 python3.11 -m venv .venv
 source .venv/bin/activate
+
+# Linux only: install CPU-only torch first so pip doesn't pull the ~2GB CUDA wheel.
+# Skip this line on macOS — the default wheel is already CPU.
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+
 pip install -e ".[dev]"
 
 # run the full suite
@@ -18,6 +23,12 @@ python -m xtbench --filter "rms_norm|attention" --threads 4
 # unit tests + rosetta-stone equivalence
 pytest
 ```
+
+System requirements:
+- Python 3.11+
+- A working C++ compiler on PATH (`torch.compile` invokes it at runtime). macOS: Xcode CLT. Ubuntu: `sudo apt install build-essential`.
+
+CI runs the test suite on Ubuntu 22.04 (`.github/workflows/test.yml`). Local development on macOS Apple Silicon also works.
 
 Output is a stdout table with median + [p10, p90] latency in ms for each side and a `speedup` column (torch_median / xla_median). Compile time is reported as a separate trailing line.
 
@@ -83,7 +94,9 @@ The default per-dtype atol lives in `src/xtbench/inputs.py`:
 - `f32 = 5e-4` — covers Inductor-vs-XLA tree-reduction drift on long reduction axes (~2e-4 observed at K=4096).
 - `bf16 = 7e-2` — covers fused-vs-decomposed kernel pairs (1 bf16 ULP at magnitude 1 is 0.0625).
 
-These are global floors. If your benchmark's bf16 output magnitudes are large (e.g. unscaled GEMM with K=1024 produces outputs of magnitude `sqrt(K) ≈ 32`, with 2-ULP error ≈ 1.0), use the per-spec escape hatch:
+These constants were empirically calibrated against Apple Silicon's bf16 math. Linux x86 with AVX-512-BF16 / AMX may need them re-tuned — `test_equivalence.py` will surface any per-spec failure, and the fix is to bump that benchmark's `atol_override`, not the global floor.
+
+If your benchmark's bf16 output magnitudes are large (e.g. unscaled GEMM with K=1024 produces outputs of magnitude `sqrt(K) ≈ 32`, with 2-ULP error ≈ 1.0), use the per-spec escape hatch:
 
 ```python
 return Spec(
