@@ -12,6 +12,12 @@ def _check_dtype(dtype: str) -> None:
 def to_torch(arr: np.ndarray, dtype: str):
     _check_dtype(dtype)
     import torch
+    # Integer arrays (used as indices in gather/scatter benchmarks) bypass the
+    # dtype cast — converting them through f32 or bf16 loses precision (bf16
+    # has only 7 mantissa bits, so values above 256 round). Keep their native
+    # integer dtype; the benchmark side casts to int64 as needed.
+    if np.issubdtype(arr.dtype, np.integer):
+        return torch.from_numpy(arr)
     t = torch.from_numpy(arr.astype(np.float32, copy=False))
     if dtype == "bf16":
         t = t.to(torch.bfloat16)
@@ -21,6 +27,9 @@ def to_torch(arr: np.ndarray, dtype: str):
 def to_jax(arr: np.ndarray, dtype: str):
     _check_dtype(dtype)
     import jax.numpy as jnp
+    if np.issubdtype(arr.dtype, np.integer):
+        # Preserve integer dtype for index tensors; see to_torch above.
+        return jnp.asarray(arr)
     target = {"f32": jnp.float32, "bf16": jnp.bfloat16}[dtype]
     return jnp.asarray(arr).astype(target)
 
