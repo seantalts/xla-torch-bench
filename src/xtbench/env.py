@@ -8,12 +8,15 @@ def pin_threads(n: int) -> None:
     """Pin all CPU thread pools to n threads.
 
     Must run before torch/jax imports; OMP and MKL respect these vars at
-    first allocation, and XLA reads XLA_FLAGS at jaxlib init.
+    first allocation. PJRT_NPROC / NPROC are checked by XLA's
+    `DefaultThreadPoolSize` in xla/pjrt/utils.cc to size the PJRT CPU client's
+    `eigen_intraop_pool_` — without them XLA uses the full host CPU count and
+    timings are not comparable to OMP-pinned PyTorch.
     """
     os.environ["OMP_NUM_THREADS"] = str(n)
     os.environ["MKL_NUM_THREADS"] = str(n)
-    # XLA reads --xla_cpu_multi_thread_eigen at jaxlib init; eigen thread count
-    # comes from OMP_NUM_THREADS (jaxlib 0.10 dropped --xla_cpu_eigen_num_threads).
+    os.environ["PJRT_NPROC"] = str(n)
+    os.environ["NPROC"] = str(n)
     xla_flags = os.environ.get("XLA_FLAGS", "")
     extra = "--xla_cpu_multi_thread_eigen=true"
     os.environ["XLA_FLAGS"] = (xla_flags + " " + extra).strip()

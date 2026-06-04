@@ -37,7 +37,7 @@ Output is a stdout table with median + [p10, p90] latency in ms for each side an
 | Flag | Default | Notes |
 |---|---|---|
 | `--filter REGEX` | `.*` | regex on benchmark name |
-| `--threads N` | `os.cpu_count()` | sets `OMP_NUM_THREADS`, `MKL_NUM_THREADS`, `XLA_FLAGS`, and `torch.set_num_threads` — must run before any framework import (the CLI handles this) |
+| `--threads N` | `os.cpu_count()` | sets `OMP_NUM_THREADS`, `MKL_NUM_THREADS`, `PJRT_NPROC`, `NPROC`, `XLA_FLAGS`, and `torch.set_num_threads` — must run before any framework import (the CLI handles this). XLA's PJRT CPU client reads `PJRT_NPROC`/`NPROC` to size `eigen_intraop_pool_`; without them XLA uses every host core regardless of `OMP_NUM_THREADS`. |
 | `--dtypes f32,bf16` | all in spec | comma list |
 | `--shapes "(d0,d1),(...)"` | per-spec | overrides spec shapes |
 | `--warmup N` / `--iters N` | 5 / 50 | first call is timed separately as compile time, never folded into steady-state |
